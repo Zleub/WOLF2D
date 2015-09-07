@@ -6,7 +6,7 @@
 /*   By: adebray <adebray@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/09/07 17:22:00 by adebray           #+#    #+#             */
-/*   Updated: 2015/09/07 20:55:54 by adebray          ###   ########.fr       */
+/*   Updated: 2015/09/07 21:17:39 by adebray          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,15 +101,14 @@ int		function(void)
 	data = g_datas[time % 2];
 	image = g_images[(time + 1) % 2];
 	time += 1;
+
 	// translate(&((t_vector){55, 70}));
 	debug_space();
-
-	while (a < WIDTH)
-	{
-		DRAW_COLN(data, a, a, 200, 480);
+	// while (a < WIDTH)
+	// {
+		DRAW_COLN(data, a, 0xfefefe, 200, 300);
 		a += 1;
-	}
-
+	// }
 	mlx_put_image_to_window(g_mlx, g_window, image, 0, 0);
 	return (0);
 }
