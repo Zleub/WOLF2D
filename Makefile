@@ -20,7 +20,7 @@ SRC_FILES	=	$(shell ls src | grep '.c')
 
 export CC		=	clang
 export CFLAGS	=	-Wall -Werror -Wextra -pedantic -g3
-LDFLAGS			=	-lmlx -framework OpenGL -framework AppKit
+LDFLAGS			=	-Lminilibx_macos -lmlx -framework OpenGL -framework AppKit
 
 SRC			=	$(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			=	$(SRC:.c=.o)
