@@ -6,7 +6,7 @@
 /*   By: adebray <adebray@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/09/07 17:22:00 by adebray           #+#    #+#             */
-/*   Updated: 2015/09/09 00:08:37 by adebray          ###   ########.fr       */
+/*   Updated: 2015/09/09 19:24:37 by adebray          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,26 +31,30 @@
 #define MAP_WIDTH 200
 #define MAP_HEIGHT 200
 
+#define A 0
+#define S 1
+#define D 2
+#define W 13
+#define LEFT 123
+#define RIGHT 124
+#define DOWN 125
+#define UP 126
+
+char	g_keys[255];
+
 void	bzero(void *b, unsigned long size);
 
 struct		s_vec2
 {
-	int		x;
-	int		y;
-};
-
-struct		s_vec4
-{
-	int		x1;
-	int		y1;
-	int		x2;
-	int		y2;
+	double		x;
+	double		y;
 };
 
 struct		s_line
 {
 	int				id;
-	struct s_vec4	vec4;
+	struct s_vec2	p1;
+	struct s_vec2	p2;
 };
 
 struct		s_player
@@ -82,8 +86,8 @@ void	debug_space(void)
 	i = 0;
 	while (i < SPACE_LIMIT)
 	{
-		if (g_space[i].vec4.x2 - g_space[i].vec4.x1 && g_space[i].vec4.y2 - g_space[i].vec4.y1)
-			printf("%d -> %d, %d, %d, %d\n", g_space[i].id, g_space[i].vec4.x1, g_space[i].vec4.y1, g_space[i].vec4.x2, g_space[i].vec4.y2);
+		if (g_space[i].p2.x - g_space[i].p1.x && g_space[i].p2.y - g_space[i].p1.y)
+			printf("%d -> %f, %f, %f, %f\n", g_space[i].id, g_space[i].p1.x, g_space[i].p1.y, g_space[i].p2.x, g_space[i].p2.y);
 		i += 1;
 	}
 }
@@ -95,27 +99,28 @@ float		raycast(int x, int y)
 	while (i < SPACE_LIMIT)
 	{
 
-		if (g_space[i].vec4.x2 - g_space[i].vec4.x1 || g_space[i].vec4.y2 - g_space[i].vec4.y1)
+		if (g_space[i].p2.x - g_space[i].p1.x || g_space[i].p2.y - g_space[i].p1.y)
 		{
 
 			t_line *l = &(g_space[i]);
-			t_vec4 _;
+			t_line _;
 
-			_.x1 = l->vec4.x1 + g_player.position.x;
-			_.y1 = l->vec4.y1 + g_player.position.y;
-			_.x2 = l->vec4.x2 + g_player.position.x;
-			_.y2 = l->vec4.y2 + g_player.position.y;
+			_.p1.x = l->p1.x - g_player.position.x;
+			_.p1.y = l->p1.y - g_player.position.y;
+			_.p2.x = l->p2.x - g_player.position.x;
+			_.p2.y = l->p2.y - g_player.position.y;
 
-			_.x1 = _.x1 * cos(g_player.rotation) - _.y1 * sin(g_player.rotation);
-			_.y1 = _.y1 * cos(g_player.rotation) + _.x1 * sin(g_player.rotation);
-			_.x2 = _.x2 * cos(g_player.rotation) - _.y2 * sin(g_player.rotation);
-			_.y2 = _.y2 * cos(g_player.rotation) + _.x2 * sin(g_player.rotation);
+			_.p1.x = _.p1.x * cos(g_player.rotation) - _.p1.y * sin(g_player.rotation);
+			_.p1.y = _.p1.y * cos(g_player.rotation) + _.p1.x * sin(g_player.rotation);
+			_.p2.x = _.p2.x * cos(g_player.rotation) - _.p2.y * sin(g_player.rotation);
+			_.p2.y = _.p2.y * cos(g_player.rotation) + _.p2.x * sin(g_player.rotation);
 
-			// printf("%d, %d\n", MIN(_.x1, _.x2), MAX(_.x1, _.x2));
-			if ((MIN(_.x1, _.x2)) <= x && x <= (MAX(_.x1, _.x2)))
+			// printf("%d, %d\n", MIN(_.p1.x, _.p2.x), MAX(_.p1.x, _.p2.x));
+
+			if ((MIN(_.p1.x, _.p2.x)) <= x && x <= (MAX(_.p1.x, _.p2.x)))
 			{
-				float a = (float)(_.y2 - _.y1) / (float)(_.x2 - _.x1);
-				float b = _.y1 - a * _.x1;
+				float a = (float)(_.p2.y - _.p1.y) / (float)(_.p2.x - _.p1.x);
+				float b = _.p1.y - a * _.p1.x;
 
 				(void)y;
 				// printf("%f\n", a * x + b);
@@ -128,20 +133,8 @@ float		raycast(int x, int y)
 	return (bol);
 }
 
-#define A 0
-#define S 1
-#define D 2
-#define W 13
-#define LEFT 123
-#define RIGHT 124
-#define DOWN 125
-#define UP 126
-
-//
-#define X sin(g_player.rotation * M_PI / 2) * 2
-#define Y cos(g_player.rotation * M_PI / 2) * 2
-//
-char	g_keys[255];
+#define X cos(g_player.rotation)
+#define Y sin(g_player.rotation)
 
 int		update_function(void)
 {
@@ -159,30 +152,65 @@ int		update_function(void)
 
 	if (g_keys[UP])
 	{
-		g_player.position.x -= X;
-		g_player.position.y -= Y;
+		g_player.position.x += X * 2;
+		g_player.position.y += Y * 2;
 	}
 	if (g_keys[DOWN])
 	{
-		g_player.position.x += X;
-		g_player.position.y += Y;
+		g_player.position.x -= X * 2;
+		g_player.position.y -= Y * 2;
 	}
 	if (g_keys[LEFT])
-		g_player.rotation -= 0.01f;
+		g_player.rotation -= 0.1f;
 	if (g_keys[RIGHT])
-		g_player.rotation += 0.01f;
+		g_player.rotation += 0.1f;
 
-	write(1, "test\n", 5);
+	printf("%f\n", g_player.rotation);
 	while (a < WIDTH)
 	{
-		float z_index = raycast(a - WIDTH / 2, 0);
-		// printf("z_index: %d, %f\n", a - WIDTH / 2, z_index);
-		if (z_index != FLT_MAX && z_index > 0)
+		int b = 0;
+		while (b < HEIGHT)
 		{
-			int size = HEIGHT / 2 - z_index;
-			// printf("size: %d\n", size);
-			DRAW_COLN(data, a, 0xff0000, HEIGHT / 2 - size, HEIGHT / 2 + size);
+			int c = 0;
+			while (c < 2)
+			{
+				t_line *l = &(g_space[c]);
+				t_line _;
+
+				_.p1.x = l->p1.x ; // - g_player.position.x;
+				_.p1.y = l->p1.y ; // - g_player.position.y;
+				_.p2.x = l->p2.x ; // - g_player.position.x;
+				_.p2.y = l->p2.y ; // - g_player.position.y;
+				//
+				// _.p1.x = _.p1.x * cos(g_player.rotation) - _.p1.y * sin(g_player.rotation);
+				// _.p1.y = _.p1.y * cos(g_player.rotation) + _.p1.x * sin(g_player.rotation);
+				// _.p2.x = _.p2.x * cos(g_player.rotation) - _.p2.y * sin(g_player.rotation);
+				// _.p2.y = _.p2.y * cos(g_player.rotation) + _.p2.x * sin(g_player.rotation);
+
+				if ((MIN(_.p1.x, _.p2.x)) <= a && a <= (MAX(_.p1.x, _.p2.x)))
+				{
+					float m = (float)(_.p2.y - _.p1.y) / (float)(_.p2.x - _.p1.x);
+					float n = _.p1.y - m * _.p1.x;
+
+					if (m * a + n == b)
+					{
+						DRAW_PIX(data, a, b, 0xff0000);
+					}
+						// bol = a * x + b;
+				}
+				c += 1;
+			}
+			b += 1;
 		}
+		DRAW_PIX(data, (int)g_player.position.x, (int)g_player.position.y, 0x00ff00);
+		//---------------
+		// float z_index = raycast(a - WIDTH / 2, 0);
+		// if (z_index != FLT_MAX && z_index > 0)
+		// {
+		// 	int size = HEIGHT / 2 - z_index;
+		// 	printf("%d, %f\n", a, z_index);
+		// 	DRAW_COLN(data, a, 0xff0000, HEIGHT / 2 - size, HEIGHT / 2 + size);
+		// }
 		DRAW_COL(destroy, a, 0x000000);
 		a += 1;
 	}
@@ -212,23 +240,23 @@ int		main(void)
 
 	bzero(g_space, sizeof(g_space));
 	g_space[0].id = 0;
-	g_space[0].vec4.x1 = -100;
-	g_space[0].vec4.y1 = -100;
-	g_space[0].vec4.x2 = 100;
-	g_space[0].vec4.y2 = 100;
+	g_space[0].p1.x = -100;
+	g_space[0].p1.y = -100;
+	g_space[0].p2.x = 100;
+	g_space[0].p2.y = 100;
 	g_space[1].id = 1;
-	g_space[1].vec4.x1 = 100;
-	g_space[1].vec4.y1 = 100;
-	g_space[1].vec4.x2 = 200;
-	g_space[1].vec4.y2 = 100;
+	g_space[1].p1.x = 100;
+	g_space[1].p1.y = 100;
+	g_space[1].p2.x = 200;
+	g_space[1].p2.y = 100;
 	g_space[2].id = 1;
-	g_space[2].vec4.x1 = -100;
-	g_space[2].vec4.y1 = -100;
-	g_space[2].vec4.x2 = 100;
-	g_space[2].vec4.y2 = 100;
+	g_space[2].p1.x = -100;
+	g_space[2].p1.y = -100;
+	g_space[2].p2.x = 100;
+	g_space[2].p2.y = 100;
 
-	g_player.position.x = 0;
-	g_player.position.y = 0;
+	g_player.position.x = 50;
+	g_player.position.y = 70;
 	g_player.rotation = 0;
 
 	g_mlx = mlx_init();
